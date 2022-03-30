@@ -6,26 +6,25 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
-using System.Drawing.Text;
 
 namespace RetroPlayer
 {
     public partial class Form1 : Form
     {
-        private bool isFavourite = false;
-        private bool isPlaying = false;
-        private bool isStopped = false;
-        private bool isLooped = false;
-        private bool isRandom = false;
-        private bool mouseDown;
+        private bool _isFavourite = false;
+        private bool _isPlaying = false;
+        private bool _isStopped = false;
+        private bool _isLooped = false;
+        private bool _isRandom = false;
+        private bool _mouseDown;
 
-        private Point lastLocation;
+        private Point _lastLocation;
 
-        private string filePath = "favourite_list.txt";
-        private string currentTrackPath;
+        private string _filePath = "favourite_list.txt";
+        private string _currentTrackPath;
 
-        private int currentTrack = 0;
-        private int nextIndex = 0;
+        private int _currentTrack = 0;
+        private int _nextIndex = 0;
 
         CancellationTokenSource tokenSource = new CancellationTokenSource();
         System.Media.SoundPlayer player = new System.Media.SoundPlayer();
@@ -44,7 +43,7 @@ namespace RetroPlayer
             pictureBoxCoverArt.Image = Image.FromFile("cover_art.jpg");
 
             // Add favourite tracks form .txt file at startup 
-            foreach (string line in System.IO.File.ReadLines(filePath))
+            foreach (string line in System.IO.File.ReadLines(_filePath))
             {
                 // Add track to listbox with favourite tracks 
                 string item = Path.GetFileName(line).Replace(".wav", "");
@@ -69,14 +68,14 @@ namespace RetroPlayer
             DateTime trackRunTime = new DateTime();
 
             // Draw time of currently played track
-            if (isPlaying == true)
+            if (_isPlaying == true)
             {
-                labelTrackCurrentTime.Text = trackRunTime.AddSeconds(currentTrack).ToString("mm:ss");
-                currentTrack++;
+                labelTrackCurrentTime.Text = trackRunTime.AddSeconds(_currentTrack).ToString("mm:ss");
+                _currentTrack++;
             }
-            else if (isPlaying == false)
+            else if (_isPlaying == false)
             {
-                currentTrack = 0;
+                _currentTrack = 0;
                 labelTrackCurrentTime.Text = "00:00";
                 labelTrackTime.Text = "00:00";
             }
@@ -104,7 +103,7 @@ namespace RetroPlayer
                 if (listBoxFavouriteTracks.Items.Count > 0)
                 {
                     int selectedIndex = listBoxFavouriteTracks.SelectedIndex;
-                    var linesRead = File.ReadLines(filePath);
+                    var linesRead = File.ReadLines(_filePath);
                     int line = 0;
 
                     foreach (var lineRead in linesRead)
@@ -142,7 +141,7 @@ namespace RetroPlayer
                         break;
                     }
 
-                    currentTrackPath = trackPath + "\\" + track + ".wav";
+                    _currentTrackPath = trackPath + "\\" + track + ".wav";
                     labelTrackName.Visible = true;
                     labelTrackName.Text = "Now playing: " + track;
                     buttonPlay.Text = "☻";
@@ -150,20 +149,20 @@ namespace RetroPlayer
                     buttonAddToFavourite.Visible = true;
 
                     // Check if track is added to favourite 
-                    if (File.Exists(filePath))
+                    if (File.Exists(_filePath))
                     {
-                        using (StreamReader sr = File.OpenText(filePath))
+                        using (StreamReader sr = File.OpenText(_filePath))
                         {
-                            if (File.ReadAllText(filePath).Contains(currentTrackPath))
+                            if (File.ReadAllText(_filePath).Contains(_currentTrackPath))
                             {
                                 buttonAddToFavourite.ForeColor = Color.Red;
-                                isFavourite = true;
+                                _isFavourite = true;
                                 sr.Close();
                             }
                             else
                             {
                                 buttonAddToFavourite.ForeColor = Color.FromArgb(255, 192, 255);
-                                isFavourite = false;
+                                _isFavourite = false;
                                 sr.Close();
                             }
                         }
@@ -189,7 +188,7 @@ namespace RetroPlayer
                     }
 
                     // Highlight another track on list when it's played
-                    if (isLooped == false)
+                    if (_isLooped == false)
                     {
                         try
                         {
@@ -204,14 +203,14 @@ namespace RetroPlayer
 
                     labelTrackCurrentTime.Text = "00:00";
                     labelTrackTime.Text = "00:00";
-                    currentTrack = 0;
+                    _currentTrack = 0;
 
                     // Go to next iteration or loop/break current iteration
-                    if (isLooped == true)
+                    if (_isLooped == true)
                     {
                         goto loop;
                     }
-                    else if (isRandom == true)
+                    else if (_isRandom == true)
                     {
                         break;
                     }
@@ -221,10 +220,10 @@ namespace RetroPlayer
                 labelTrackName.Visible = false;
                 labelTrackName.Text = "";
                 buttonPlay.Text = "☺";
-                isPlaying = false;
+                _isPlaying = false;
 
                 // Play random track
-                if (isRandom == true && isStopped == false && tokenSource.IsCancellationRequested == false)
+                if (_isRandom == true && _isStopped == false && tokenSource.IsCancellationRequested == false)
                 {
                     Random rand = new Random();
                     int offset = rand.Next(-index, choosenListbox.Items.Count - index);
@@ -241,10 +240,10 @@ namespace RetroPlayer
             }
 
             // Play track by play/stop button
-            if (choosenListbox.Items.Count > 0 && isPlaying == false && fromButtonClick == true && choosenListbox.SelectedIndex >= 0)
+            if (choosenListbox.Items.Count > 0 && _isPlaying == false && fromButtonClick == true && choosenListbox.SelectedIndex >= 0)
             {
-                isPlaying = true;
-                isStopped = false;
+                _isPlaying = true;
+                _isStopped = false;
                 PlayChoosen();
             }
             // Play track by listbox item double click
@@ -255,16 +254,16 @@ namespace RetroPlayer
                 tokenSource.Dispose();
                 tokenSource = new CancellationTokenSource();
 
-                isPlaying = true;
-                isStopped = false;
+                _isPlaying = true;
+                _isStopped = false;
 
                 labelTrackCurrentTime.Text = "00:00";
                 labelTrackTime.Text = "00:00";
-                currentTrack = 0;
+                _currentTrack = 0;
                 PlayChoosen();
             }
             // Stop playback
-            else if (choosenListbox.Items.Count > 0 && isPlaying == true && fromButtonClick == true)
+            else if (choosenListbox.Items.Count > 0 && _isPlaying == true && fromButtonClick == true)
             {
                 // Cancel current task
                 tokenSource.Cancel();
@@ -272,8 +271,8 @@ namespace RetroPlayer
                 tokenSource = new CancellationTokenSource();
 
                 player.Stop();
-                isPlaying = false;
-                isStopped = true;
+                _isPlaying = false;
+                _isStopped = true;
 
                 labelTrackName.Visible = false;
                 labelTrackName.Text = "";
@@ -357,7 +356,7 @@ namespace RetroPlayer
         {
             if (listBoxTracksList.Items.Count > 0 && listBoxTracksList.SelectedIndex >= 0 && listBoxTracksList.Visible == true)
             {
-                isStopped = true;
+                _isStopped = true;
                 PlayAudio(false, 0);
             }
         }
@@ -367,7 +366,7 @@ namespace RetroPlayer
         {
             if (listBoxFavouriteTracks.Items.Count > 0 && listBoxFavouriteTracks.SelectedIndex >= 0 && listBoxFavouriteTracks.Visible == true)
             {
-                isStopped = true;
+                _isStopped = true;
                 PlayAudio(false, 0, true);
             }
         }
@@ -383,9 +382,9 @@ namespace RetroPlayer
 
             labelTrackCurrentTime.Text = "00:00";
             labelTrackTime.Text = "00:00";
-            currentTrack = 0;
+            _currentTrack = 0;
 
-            nextIndex = listbox.SelectedIndex + direction;
+            _nextIndex = listbox.SelectedIndex + direction;
 
             try
             {
@@ -401,11 +400,11 @@ namespace RetroPlayer
 
             if (from_favourites == false)
             {
-                PlayAudio(true, nextIndex);
+                PlayAudio(true, _nextIndex);
             }
             else if (from_favourites == true)
             {
-                PlayAudio(true, nextIndex, true);
+                PlayAudio(true, _nextIndex, true);
             }
         }
 
@@ -442,14 +441,14 @@ namespace RetroPlayer
         // Loop playback
         private void buttonLoop_Click(object sender, EventArgs e)
         {
-            if (isLooped == false)
+            if (_isLooped == false)
             {
-                isLooped = true;
+                _isLooped = true;
                 buttonLoop.ForeColor = Color.White;
             }
             else
             {
-                isLooped = false;
+                _isLooped = false;
                 buttonLoop.ForeColor = Color.FromArgb(255, 192, 255);
             }
         }
@@ -457,14 +456,14 @@ namespace RetroPlayer
         // Randomize playback
         private void buttonPlayRandom_Click(object sender, EventArgs e)
         {
-            if (isRandom == false)
+            if (_isRandom == false)
             {
-                isRandom = true;
+                _isRandom = true;
                 buttonPlayRandom.ForeColor = Color.White;
             }
-            else if (isRandom == true)
+            else if (_isRandom == true)
             {
-                isRandom = false;
+                _isRandom = false;
                 buttonPlayRandom.ForeColor = Color.FromArgb(255, 192, 255);
             }
         }
@@ -472,17 +471,17 @@ namespace RetroPlayer
         // Add track to favourite
         private void buttonAddToFavourite_Click(object sender, EventArgs e)
         {
-            if (isFavourite == false)
+            if (_isFavourite == false)
             {
-                isFavourite = true;
+                _isFavourite = true;
                 buttonAddToFavourite.ForeColor = Color.Red;
-                ModifyFavourite(currentTrackPath, true);
+                ModifyFavourite(_currentTrackPath, true);
             }
             else
             {
-                isFavourite = false;
+                _isFavourite = false;
                 buttonAddToFavourite.ForeColor = Color.FromArgb(255, 192, 255);
-                ModifyFavourite(currentTrackPath, false);
+                ModifyFavourite(_currentTrackPath, false);
             }
         }
 
@@ -491,24 +490,24 @@ namespace RetroPlayer
         {
             string item;
 
-            if (!File.Exists(filePath))
+            if (!File.Exists(_filePath))
             {
-                File.CreateText(filePath);
+                File.CreateText(_filePath);
             }
 
             // Add track to listbox with favourite tracks 
             if (add == true)
             {
-                using (StreamReader sr = File.OpenText(filePath))
+                using (StreamReader sr = File.OpenText(_filePath))
                 {
-                    if (File.ReadAllText(filePath).Contains(trackPath))
+                    if (File.ReadAllText(_filePath).Contains(trackPath))
                     {
                         sr.Close();
                     }
                     else
                     {
                         sr.Close();
-                        using (StreamWriter sw = File.AppendText(filePath))
+                        using (StreamWriter sw = File.AppendText(_filePath))
                         {
                             sw.WriteLine(trackPath);
                             item = Path.GetFileName(trackPath).Replace(".wav", "");
@@ -522,7 +521,7 @@ namespace RetroPlayer
             {
                 string oldFile;
                 string appended = "";
-                StreamReader sr = File.OpenText(filePath);
+                StreamReader sr = File.OpenText(_filePath);
                 while ((oldFile = sr.ReadLine()) != null)
                 {
                     if (!oldFile.Contains(trackPath))
@@ -545,7 +544,7 @@ namespace RetroPlayer
                     }
                 }
                 sr.Close();
-                File.WriteAllText(filePath, appended);
+                File.WriteAllText(_filePath, appended);
             }
         }
 
@@ -583,7 +582,7 @@ namespace RetroPlayer
                 int selectedIndex = listBoxFavouriteTracks.SelectedIndex;
                 listBoxFavouriteTracks.Items.RemoveAt(selectedIndex);
 
-                StreamReader sr = File.OpenText(filePath);
+                StreamReader sr = File.OpenText(_filePath);
 
                 string appended = "";
                 string oldFile;
@@ -602,7 +601,7 @@ namespace RetroPlayer
                 }
                 sr.Close();
 
-                File.WriteAllText(filePath, appended);
+                File.WriteAllText(_filePath, appended);
 
                 try
                 {
@@ -613,7 +612,7 @@ namespace RetroPlayer
                 }
 
                 buttonAddToFavourite.ForeColor = Color.FromArgb(255, 192, 255);
-                isFavourite = false;
+                _isFavourite = false;
             }
         }
 
@@ -666,22 +665,22 @@ namespace RetroPlayer
         {
             if (e.Button == MouseButtons.Left)
             {
-                mouseDown = true;
-                lastLocation = e.Location;
+                _mouseDown = true;
+                _lastLocation = e.Location;
             }
         }
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
-            mouseDown = false;
+            _mouseDown = false;
         }
 
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
-            if (mouseDown == true)
+            if (_mouseDown == true)
             {
                 this.Location = new Point(
-                    (this.Location.X - lastLocation.X) + e.X, (this.Location.Y - lastLocation.Y) + e.Y);
+                    (this.Location.X - _lastLocation.X) + e.X, (this.Location.Y - _lastLocation.Y) + e.Y);
 
                 this.Update();
             }
@@ -703,7 +702,7 @@ namespace RetroPlayer
         #region Visual events for controls
         private void buttonAddToFavourite_MouseHover(object sender, EventArgs e)
         {
-            if (isFavourite == false)
+            if (_isFavourite == false)
             {
                 buttonAddToFavourite.ForeColor = Color.Red;
             }
@@ -711,7 +710,7 @@ namespace RetroPlayer
 
         private void buttonAddToFavourite_MouseLeave(object sender, EventArgs e)
         {
-            if (isFavourite == false)
+            if (_isFavourite == false)
             {
                 buttonAddToFavourite.ForeColor = Color.FromArgb(255, 192, 255);
             }
@@ -719,7 +718,7 @@ namespace RetroPlayer
 
         private void buttonLoop_MouseHover(object sender, EventArgs e)
         {
-            if (isLooped == false)
+            if (_isLooped == false)
             {
                 buttonLoop.ForeColor = Color.White;
             }
@@ -727,7 +726,7 @@ namespace RetroPlayer
 
         private void buttonLoop_MouseLeave(object sender, EventArgs e)
         {
-            if (isLooped == false)
+            if (_isLooped == false)
             {
                 buttonLoop.ForeColor = Color.FromArgb(255, 192, 255);
             }
@@ -735,7 +734,7 @@ namespace RetroPlayer
 
         private void buttonPlayRandom_MouseHover(object sender, EventArgs e)
         {
-            if (isRandom == false)
+            if (_isRandom == false)
             {
                 buttonPlayRandom.ForeColor = Color.White;
             }
@@ -743,7 +742,7 @@ namespace RetroPlayer
 
         private void buttonPlayRandom_MouseLeave(object sender, EventArgs e)
         {
-            if (isRandom == false)
+            if (_isRandom == false)
             {
                 buttonPlayRandom.ForeColor = Color.FromArgb(255, 192, 255);
             }
